@@ -1,141 +1,133 @@
 <!DOCTYPE html>
-<html lang="uk"><!DOCTYPE html> 
+<html lang="uk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PokeLevy Online 32.0</title>
+<title>PokeLevy 10.0</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101c30;color:white;font-family:Arial,sans-serif}
-header{background:#172a44;padding:15px;text-align:center}
-h1{color:#ffd04d;margin:5px}
-button{background:#ffd04d;border:0;border-radius:9px;padding:12px;margin:5px;font-weight:bold;cursor:pointer}
+body{margin:0;background:#101b30;color:white;font-family:Arial,sans-serif}
+header{background:#172b4d;text-align:center;padding:18px}
+h1{color:#ffce35;margin:5px}
+nav{display:flex;flex-wrap:wrap;justify-content:center;gap:7px;padding:12px;background:#14243d}
+button{background:#2675d6;color:white;border:0;border-radius:9px;padding:11px 14px;cursor:pointer;font-size:14px}
 button:disabled{opacity:.4}
-.panel{background:#233a52;border-radius:14px;padding:15px;margin:12px}
-.map{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.location{min-height:110px;border-radius:15px;padding:15px;text-align:center;background:linear-gradient(135deg,#348c62,#234b78);cursor:pointer}
-.location.locked{opacity:.5}
-.card{background:#314b66;border-radius:12px;padding:12px;margin:8px 0}
-.bar{height:12px;background:#792f3a;border-radius:8px;overflow:hidden}
-.fill{height:100%;background:#4ee27b}
-.hidden{display:none}
-.center{text-align:center}
-#log{max-height:160px;overflow:auto;font-size:14px}
-select{padding:10px;border-radius:8px}
+button:hover:not(:disabled){background:#3999ff}
+#game{max-width:850px;margin:auto;padding:12px}
+.card{background:#203653;border-radius:14px;padding:18px;margin:12px 0}
+.row{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.location{background:linear-gradient(135deg,#276d82,#24426b);border-radius:12px;padding:20px;margin:10px 0}
+.hp{height:13px;background:#6b2531;border-radius:10px;overflow:hidden}
+.hp div{height:100%;background:#45d878;transition:width .3s}
+.sprite{width:110px;height:110px;object-fit:contain}
+.battlefield{background:linear-gradient(#8ac9e9 0%,#c5edb3 60%,#62a963 61%);border-radius:15px;color:#172b4d;padding:20px;text-align:center}
+.battlefield .row{justify-content:space-around}
+small{color:#c9d7e9}
+.log{background:#14243d;border-radius:8px;padding:12px;margin-top:10px;white-space:pre-line}
+.badge{background:#355b82;border-radius:8px;padding:6px 10px}
 </style>
 </head>
 <body>
-
 <header>
-<h1>⚡ P
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PokeLevy Online</title>
-<style>
-*{box-sizing:border-box}
-body{
- margin:0;
- font-family:Arial,sans-serif;
- background:#172435;
- color:white;
- text-align:center;
-}
-header{
- background:#102030;
- padding:15px;
- font-size:25px;
- font-weight:bold;
- color:#ffda48;
-}
-nav{
- background:#263c52;
- padding:10px;
- display:flex;
- justify-content:center;
- flex-wrap:wrap;
- gap:8px;
-}
-button,select{
- padding:12px;
- border:0;
- border-radius:9px;
- font-size:15px;
- cursor:pointer;
-}
-button{background:#ffcf40;color:#222}
-button:disabled{opacity:.5}
-.card{
- background:#263b50;
- margin:15px auto;
- padding:18px;
- border-radius:14px;
- max-width:500px;
-}
-.map{
- background:linear-gradient(#8bd2fa,#78c76d);
- padding:25px 10px;
- border-radius:15px;
- color:#17351d;
-}
-.place{
- display:block;
- width:90%;
- margin:12px auto;
- background:#fff4bd;
-}
-.pokemon{
- font-size:75px;
- margin:15px;
-}
-.hp{
- height:15px;
- background:#ae3434;
- border-radius:10px;
- overflow:hidden;
-}
-.hp div{
- height:100%;
- background:#36ce60;
- width:100%;
-}
-#battle,#game{display:none}
-</style>
-</head>
-<body>
-
-<header>⚡ PokeLevy Online</header>
-
-<div id="start" class="card">
-<h2>Ласкаво просимо!</h2>
-<p>Обери мову / Choose language</p>
-<select id="lang">
-<option value="uk">Українська</option>
-<option value="pl">Polski</option>
-<option value="en">English</option>
-</select>
-<h3>Обери стартового покемона</h3>
-<button onclick="startGame('🔥','Фламі')">🔥 Фламі</button>
-<button onclick="startGame('💧','Акві')">💧 Акві</button>
-<button onclick="startGame('🌿','Ліфі')">🌿 Ліфі</button>
-</div>
-
-<div id="game">
+<h1>⚡ PokeLevy 10.0</h1>
+<p>Твоя пригода починається!</p>
+<div id="stats"></div>
+</header>
 <nav>
 <button onclick="showMap()">🗺️ Карта</button>
-<button onclick="showTeam()">🎒 Команда</button>
-<button onclick="heal()">❤️ Лікування</button>
+<button onclick="showTeam()">🐉 Команда</button>
+<button onclick="explore()">🌿 Пошук</button>
+<button onclick="showShop()">🏪 Магазин</button>
+<button onclick="heal()">🏥 Лікування</button>
+<button onclick="showTasks()">📜 Завдання</button>
 </nav>
-
+<main id="game"></main>
+<script>
+const species=[
+{id:1,name:"Бульбазавр",type:"Трава",hp:45,atk:12},
+{id:4,name:"Чармандер",type:"Вогонь",hp:39,atk:14},
+{id:7,name:"Сквіртл",type:"Вода",hp:44,atk:12},
+{id:10,name:"Катерпі",type:"Трава",hp:35,atk:9},
+{id:16,name:"Піджі",type:"Повітря",hp:40,atk:11},
+{id:19,name:"Ратата",type:"Звичайний",hp:30,atk:11},
+{id:25,name:"Пікачу",type:"Електрика",hp:35,atk:15},
+{id:37,name:"Вульпікс",type:"Вогонь",hp:38,atk:13},
+{id:43,name:"Одіш",type:"Трава",hp:45,atk:11},
+{id:74,name:"Геодуд",type:"Камінь",hp:45,atk:13},
+{id:129,name:"Меджикарп",type:"Вода",hp:25,atk:7},
+{id:133,name:"Іві",type:"Звичайний",hp:42,atk:13}
+];
+const places=[
+{name:"Місто Аврора",icon:"🏙️",kind:"Місто",links:[1,2],wild:[16,19]},
+{name:"Зелений ліс",icon:"🌲",kind:"Ліс",links:[0,3,4],wild:[10,16,43,1]},
+{name:"Озеро спокою",icon:"🏞️",kind:"Озеро",links:[0,4],wild:[7,129,133]},
+{name:"Гірський перевал",icon:"⛰️",kind:"Гори",links:[1,5],wild:[74,19,37]},
+{name:"Квіткова долина",icon:"🌸",kind:"Долина",links:[1,2,5],wild:[25,43,133]},
+{name:"Місто Сонця",icon:"🌇",kind:"Місто",links:[3,4],wild:[4,37,25]}
+];
+const KEY="pokelevy10_save";
+function fresh(){
+return {
+coins:250,balls:8,potions:3,location:0,
+team:[],seen:[],wins:0,catches:0
+};
+}
+let state;
+try{
+state=JSON.parse(localStorage.getItem(KEY))||fresh();
+if(!Array.isArray(state.team))state=fresh();
+}catch(e){state=fresh()}
+let battle=null;
+let screen="map";
+const game=document.getElementById("game");
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function save(){
+localStorage.setItem(KEY,JSON.stringify(state));
+stats();
+}
+function stats(){
+document.getElementById("stats").textContent=
+"🪙 "+state.coins+" | 🔴 "+state.balls+
+" | 🧪 "+state.potions+" | 🏆 "+state.wins;
+}
+function image(id){
+return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/"+id+".png";
+}
+function createPokemon(id,level=5){
+let s=species.find(x=>x.id===id);
+let max=s.hp+level*3;
+return {
+id:s.id,name:s.name,type:s.type,level,
+max,hp:max,atk:s.atk+level*2,xp:0,
+pp:[20,15,10,5]
+};
+}
+function starter(){
+screen="starter";
+game.innerHTML=`
 <div class="card">
-<h3 id="location">Початкове місто</h3>
-<p id="status"></p>
-</div>
-
-<div id="map" class="card">
-<h2>🗺️ Світ PokeLevy</h2>
-<div class="map">
-<button class="place" onclick="travel('Початкове місто')">🏠 Початкове місто</button>
-<button class="place" onclick="travel('Зелений ліс')">🌳 Зелений ліс</button>
-<button class="place" onclick="travel('Блакитне озеро')">🌊 Блакитне озеро</button>
-<button class="place" onclick
+<h2>🎮 Обери першого покемона</h2>
+<p>Вибери свого партнера для пригод.</p>
+<div class="row">
+${[1,4,7].map(id=>{
+let s=species.find(x=>x.id===id);
+return `<div class="card">
+<img class="sprite" src="${image(id)}">
+<h3>${s.name}</h3>
+<button onclick="chooseStarter(${id})">Обрати</button>
+</div>`;
+}).join("")}
+</div></div>`;
+}
+function chooseStarter(id){
+state.team=[createPokemon(id)];
+save();showMap();
+}
+function showMap(){
+if(battle)return showBattle();
+if(!state.team.length)return starter();
+screen="map";
+let p=places[state.location];
+game.innerHTML=`
+<div class="card">
+<h
