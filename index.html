@@ -1,1 +1,113 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PokeLevy Online</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ font-family:Arial,sans-serif;
+ background:#172435;
+ color:white;
+ text-align:center;
+}
+header{
+ background:#102030;
+ padding:15px;
+ font-size:25px;
+ font-weight:bold;
+ color:#ffda48;
+}
+nav{
+ background:#263c52;
+ padding:10px;
+ display:flex;
+ justify-content:center;
+ flex-wrap:wrap;
+ gap:8px;
+}
+button,select{
+ padding:12px;
+ border:0;
+ border-radius:9px;
+ font-size:15px;
+ cursor:pointer;
+}
+button{background:#ffcf40;color:#222}
+button:disabled{opacity:.5}
+.card{
+ background:#263b50;
+ margin:15px auto;
+ padding:18px;
+ border-radius:14px;
+ max-width:500px;
+}
+.map{
+ background:linear-gradient(#8bd2fa,#78c76d);
+ padding:25px 10px;
+ border-radius:15px;
+ color:#17351d;
+}
+.place{
+ display:block;
+ width:90%;
+ margin:12px auto;
+ background:#fff4bd;
+}
+.pokemon{
+ font-size:75px;
+ margin:15px;
+}
+.hp{
+ height:15px;
+ background:#ae3434;
+ border-radius:10px;
+ overflow:hidden;
+}
+.hp div{
+ height:100%;
+ background:#36ce60;
+ width:100%;
+}
+#battle,#game{display:none}
+</style>
+</head>
+<body>
 
+<header>⚡ PokeLevy Online</header>
+
+<div id="start" class="card">
+<h2>Ласкаво просимо!</h2>
+<p>Обери мову / Choose language</p>
+<select id="lang">
+<option value="uk">Українська</option>
+<option value="pl">Polski</option>
+<option value="en">English</option>
+</select>
+<h3>Обери стартового покемона</h3>
+<button onclick="startGame('🔥','Фламі')">🔥 Фламі</button>
+<button onclick="startGame('💧','Акві')">💧 Акві</button>
+<button onclick="startGame('🌿','Ліфі')">🌿 Ліфі</button>
+</div>
+
+<div id="game">
+<nav>
+<button onclick="showMap()">🗺️ Карта</button>
+<button onclick="showTeam()">🎒 Команда</button>
+<button onclick="heal()">❤️ Лікування</button>
+</nav>
+
+<div class="card">
+<h3 id="location">Початкове місто</h3>
+<p id="status"></p>
+</div>
+
+<div id="map" class="card">
+<h2>🗺️ Світ PokeLevy</h2>
+<div class="map">
+<button class="place" onclick="travel('Початкове місто')">🏠 Початкове місто</button>
+<button class="place" onclick="travel('Зелений ліс')">🌳 Зелений ліс</button>
+<button class="place" onclick="travel('Блакитне озеро')">🌊 Блакитне озеро</button>
+<button class="place" onclick
