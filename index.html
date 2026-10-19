@@ -130,4 +130,315 @@ screen="map";
 let p=places[state.location];
 game.innerHTML=`
 <div class="card">
-<h
+<h2>🗺️ Карта світу</h2>
+<p>Подорожуй між сусідніми локаціями.</p>
+<div class="location">
+<h1>${p.icon} ${p.name}</h1>
+<p>${p.kind}</p>
+</div>
+<h3>🚶 Доступні переходи</h3>
+<div class="row">
+${p.links.map(i=>`
+<button onclick="travel(${i})">
+${places[i].icon} ${places[i].name} →
+</button>`).join("")}
+</div>
+<br>
+<button onclick="explore()">🌿 Шукати покемонів</button>
+</div>
+<div class="card">
+<h3>📍 Місцевість</h3>
+<p>У цій локації можна зустріти:</p>
+<div class="row">
+${p.wild.map(id=>{
+let s=species.find(x=>x.id===id);
+return `<span class="badge">${s.name}</span>`;
+}).join("")}
+</div></div>`;
+}
+function travel(i){
+if(battle)return;
+if(!places[state.location].links.includes(i))return;
+state.location=i;save();showMap();
+}
+function explore(){
+if(battle)return showBattle();
+if(!state.team.length)return starter();
+let p=places[state.location];
+let id=p.wild[rnd(0,p.wild.length-1)];
+let level=rnd(3,8)+Math.floor(state.wins/8);
+battle={enemy:createPokemon(id,level),log:"З'явився дикий покемон!",turn:0};
+if(!state.seen.includes(id))state.seen.push(id);
+save();showBattle();
+}
+const moves=[
+{name:"Швидка атака",power:8,max:20},
+{name:"Удар стихії",power:13,max:15},
+{name:"Сильний удар",power:19,max:10},
+{name:"Суперудар",power:28,max:5}
+];
+function active(){
+return state.team.find(p=>p.hp>0);
+}
+function hpbar(p){
+return `<div class="hp"><div style="width:${Math.max(0,p.hp/p.max*100)}%"></div></div>`;
+}
+function showBattle(){
+if(!battle)return showMap();
+screen="battle";
+let a=active(),e=battle.enemy;
+if(!a){
+battle=null;
+game.innerHTML=`<div class="card">
+<h2>💔 Команда програла!</h2>
+<p>Вилікуй покемонів у центрі.</p>
+<button onclick="heal()">🏥 Лікування</button>
+</div>`;
+return;
+}
+game.innerHTML=`
+<div class="card">
+<h2>⚔️ Бій покемонів</h2>
+<div class="battlefield">
+<div class="row">
+<div>
+<h3>${e.name} Lv.${e.level}</h3>
+<img class="sprite" src="${image(e.id)}">
+<p>❤️ ${e.hp}/${e.max}</p>${hpbar(e)}
+</div>
+<div>
+<h3>${a.name} Lv.${a.level}</h3>
+<img class="sprite" src="${image(a.id)}">
+<p>❤️ ${a.hp}/${a.max}</p>${hpbar(a)}
+</div>
+</div>
+</div>
+<div class="log">${battle.log}</div>
+<h3>⚔️ Обери атаку</h3>
+<div class="row">
+${moves.map((m,i)=>`
+<button ${a.pp[i]<=0?"disabled":""}
+onclick="attack(${i})">
+${m.name}<br>
+PP ${a.pp[i]}/${m.max}
+</button>`).join("")}
+</div>
+<hr>
+<div class="row">
+<button onclick="throwBall()">🔴 Покебол (${state.balls})</button>
+<button onclick="usePotion()">🧪 Зілля (${state.potions})</button>
+<button onclick="switchPokemon()">🔄 Змінити</button>
+<button onclick="runAway()">🏃 Втекти</button>
+</div>
+</div>`;
+}
+function attack(i){
+if(!battle)return;
+let a=active(),e=battle.enemy,m=moves[i];
+if(!a||a.pp[i]<=0)return;
+a.pp[i]--;
+let damage=Math.max(1,m.power+Math.floor(a.atk/3)+rnd(-3,3));
+e.hp=Math.max(0,e.hp-damage);
+battle.log=a.name+" використав "+m.name+"!\nЗавдано "+damage+" шкоди.";
+if(e.hp<=0){
+winBattle();return;
+}
+enemyTurn();
+}
+function enemyTurn(){
+let e=battle.enemy,a=active();
+if(!a)return;
+let damage=Math.max(1,Math.floor(e.atk/2)+rnd(1,6));
+a.hp=Math.max(0,a.hp-damage);
+battle.log+="\n"+e.name+" атакує! Шкода: "+damage;
+if(a.hp<=0)battle.log+="\n"+a.name+" втратив свідомість!";
+save();showBattle();
+}
+function winBattle(){
+let a=active(),e=battle.enemy;
+let xp=e.level*12;
+let money=e.level*8;
+a.xp+=xp;
+state.coins+=money;
+state.wins++;
+let message="🏆 Перемога! +"+xp+" XP, +"+money+" монет.";
+while(a.xp>=a.level*25){
+a.xp-=a.level*25;
+a.level++;
+a.max+=3;
+a.atk+=2;
+a.hp=Math.min(a.max,a.hp+8);
+message+="\n⭐ "+a.name+" досяг рівня "+a.level+"!";
+}
+battle=null;save();
+game.innerHTML=`<div class="card">
+<h2>🏆 Перемога!</h2>
+<p style="white-space:pre-line">${message}</p>
+<button onclick="showMap()">🗺️ Повернутися</button>
+<button onclick="explore()">🌿 Наступний бій</button>
+</div>`;
+}
+function throwBall(){
+if(!battle||state.balls<=0)return;
+state.balls--;
+let e=battle.enemy;
+let chance=.2+.65*(1-e.hp/e.max);
+if(Math.random()<chance){
+let caught=createPokemon(e.id,e.level);
+caught.hp=Math.max(1,e.hp);
+state.team.push(caught);
+state.catches++;
+battle=null;save();
+game.innerHTML=`<div class="card">
+<h2>🎉 Покемона спіймано!</h2>
+<img class="sprite" src="${image(caught.id)}">
+<h3>${caught.name}</h3>
+<button onclick="showTeam()">🐉 Команда</button>
+<button onclick="showMap()">🗺️ Карта</button>
+</div>`;
+}else{
+battle.log="Покемон вирвався з покебола!";
+enemyTurn();
+}
+}
+function usePotion(){
+if(!battle||state.potions<=0)return;
+let a=active();
+if(!a||a.hp>=a.max)return;
+state.potions--;
+a.hp=Math.min(a.max,a.hp+30);
+battle.log="🧪 "+a.name+" відновив здоров'я!";
+enemyTurn();
+}
+function switchPokemon(){
+if(!battle)return;
+let choices=state.team
+.map((p,i)=>({p,i}))
+.filter(x=>x.p.hp>0&&x.p!==active());
+if(!choices.length){
+battle.log="Немає іншого здорового покемона.";
+return showBattle();
+}
+game.innerHTML=`<div class="card">
+<h2>🔄 Обери покемона</h2>
+${choices.map(x=>`
+<p><button onclick="selectPokemon(${x.i})">
+${x.p.name} Lv.${x.p.level}
+❤️ ${x.p.hp}/${x.p.max}
+</button></p>`).join("")}
+<button onclick="showBattle()">Назад</button>
+</div>`;
+}
+function selectPokemon(i){
+let p=state.team[i];
+if(!battle||!p||p.hp<=0)return;
+state.team.splice(i,1);
+state.team.unshift(p);
+battle.log="Виходить "+p.name+"!";
+enemyTurn();
+}
+function runAway(){
+if(!battle)return;
+if(Math.random()<.8){
+battle=null;showMap();
+}else{
+battle.log="Не вдалося втекти!";
+enemyTurn();
+}
+}
+function showTeam(){
+if(battle)return showBattle();
+screen="team";
+game.innerHTML=`<div class="card">
+<h2>🐉 Мої покемони (${state.team.length})</h2>
+${state.team.map((p,i)=>`
+<div class="card">
+<img class="sprite" src="${image(p.id)}">
+<h3>${p.name} — Lv.${p.level}</h3>
+<p>${p.type} | ❤️ ${p.hp}/${p.max}</p>
+${hpbar(p)}
+<p>⭐ XP: ${p.xp}/${p.level*25}</p>
+<button ${i===0?"disabled":""}
+onclick="makeLeader(${i})">
+${i===0?"⭐ Активний":"Зробити активним"}
+</button>
+</div>`).join("")}
+</div>`;
+}
+function makeLeader(i){
+if(battle)return;
+let p=state.team.splice(i,1)[0];
+state.team.unshift(p);
+save();showTeam();
+}
+function showShop(){
+if(battle)return showBattle();
+game.innerHTML=`<div class="card">
+<h2>🏪 Магазин</h2>
+<p>🪙 Монети: ${state.coins}</p>
+<div class="card">
+<h3>🔴 Покебол — 40 монет</h3>
+<button onclick="buy('ball')">Купити</button>
+</div>
+<div class="card">
+<h3>🧪 Зілля — 30 монет</h3>
+<button onclick="buy('potion')">Купити</button>
+</div>
+</div>`;
+}
+function buy(item){
+let cost=item==="ball"?40:30;
+if(state.coins<cost){
+alert("Недостатньо монет!");
+return;
+}
+state.coins-=cost;
+if(item==="ball")state.balls++;
+else state.potions++;
+save();showShop();
+}
+function heal(){
+if(battle)return showBattle();
+if(!state.team.length)return starter();
+if(places[state.location].kind!=="Місто"){
+game.innerHTML=`<div class="card">
+<h2>🏥 Центр покемонів</h2>
+<p>Лікування доступне тільки в містах.</p>
+<button onclick="showMap()">Повернутися</button>
+</div>`;
+return;
+}
+state.team.forEach(p=>{
+p.hp=p.max;
+p.pp=moves.map(m=>m.max);
+});
+save();
+game.innerHTML=`<div class="card">
+<h2>🏥 Команду вилікувано!</h2>
+<p>Усі покемони відновили HP та PP.</p>
+<button onclick="showMap()">Продовжити</button>
+</div>`;
+}
+function showTasks(){
+if(battle)return showBattle();
+let tasks=[
+["Перемогти у 5 боях",state.wins,5],
+["Спіймати 3 покемонів",state.catches,3],
+["Перемогти у 20 боях",state.wins,20]
+];
+game.innerHTML=`<div class="card">
+<h2>📜 Завдання тренера</h2>
+${tasks.map(t=>`
+<div class="card">
+<h3>${t[0]}</h3>
+<p>${Math.min(t[1],t[2])}/${t[2]}</p>
+<strong>${t[1]>=t[2]?"✅ Виконано":"⏳ У процесі"}</strong>
+</div>`).join("")}
+</div>`;
+}
+stats();
+if(!state.team.length)starter();
+else showMap();
+</script>
+</body>
+</html>
